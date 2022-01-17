@@ -1,84 +1,131 @@
-import os
-import numpy
 import argparse
+import os
 import time
+
+import matplotlib.axes._subplots
+import numpy
 import pandas as pd
 import seaborn as sn
+from matplotlib.axes._subplots import *
+from df_utils import df_with_speedup
 
-pd.set_option('display.max_columns', 16)
+l = matplotlib.axes._subplots.Subplot
 
-
-def prepare_dataframe(data):
-    basevalues = data[data.version == "sequential"]
-
-    # join dataframes such that every measurement
-    # has the according sequential measurement in the same row
-    compared_to_sequential = data.merge(
-        basevalues[["scenario", "library", "min", "geo-mean", "max"]],
-        on=["scenario", "library"],
-        suffixes=('', '_seq'))
-
-    # minimal speedup = maximal parallel time / minimal sequential time
-    compared_to_sequential["S_min"] = compared_to_sequential["min_seq"] \
-                                      / compared_to_sequential["max"]
-    # maximal speedup = minimal parallel time / maximal sequential time
-    compared_to_sequential["S_max"] = compared_to_sequential["max_seq"] \
-                                      / compared_to_sequential["min"]
-    # mean speedup = mean parallel time / mean sequential time
-    compared_to_sequential["S_mean"] = compared_to_sequential["geo-mean_seq"] \
-                                       / compared_to_sequential["geo-mean"]
-
-    # Remove sequential results from speedup plot
-    compared_to_sequential = compared_to_sequential[compared_to_sequential["version"] != "sequential"]
-    # Make one column 'version - library' for hue
-    compared_to_sequential["version_lib"] = compared_to_sequential["version"] + "_" + compared_to_sequential["library"]
-
-    print("Prepared Data:")
-    pO = compared_to_sequential[["scenario","version_lib", "S_min", "S_mean", "S_max", "min", "geo-mean", "max",  "min_seq", "geo-mean_seq", "max_seq"]].sort_values("version_lib")
-    print(pO)
-    return compared_to_sequential
-
-
-def set_errorbars(plot, plot_data):
-    x_coords =[]
-    y_coords =[]
-    colors = []
-    # collections are based on hue i.e. version_lib combinations
+def set_errorbars(plot, plot_data, is_grid=False):
+    x_coords = []
+    y_coords = []
+    dot_colors = []
+    # collections are based on hue i.e. 'lines of data with same color'
     for point_pair in plot.collections:
-        point_pair.set_sizes(point_pair.get_sizes()*0.5)
+        point_pair.set_sizes(point_pair.get_sizes() * 0.5)
         for x, y in point_pair.get_offsets():
             if type(x) != numpy.float64:
                 # it's a filling for a missing point
                 continue
-            colors.append(point_pair.get_edgecolor())
+            dot_colors.append(point_pair.get_edgecolor())
             x_coords.append(x)
             y_coords.append(y)
-    plot_data["y_minus"] = plot_data["S_mean"] - plot_data["S_min"]
-    plot_data["y_plus"]  = plot_data["S_max"] - plot_data["S_mean"]
-
+    colors = plot.collections[0].get_fc() if is_grid else dot_colors
     plot.errorbar(x_coords, y_coords, plot_data[["y_minus", "y_plus"]].T,
                   ecolor=colors, fmt=' ')
+
+
+def set_plus_minus(plot_data, y_max, y_mean, y_min):
+    plot_data.loc[:, "y_minus"] = plot_data[y_mean] - plot_data[y_min]
+    plot_data.loc[:, "y_plus"] = plot_data[y_max] - plot_data[y_mean]
+
+
+def set_title(plot, info, data):
+    if info:
+        groups = data.groupby(info)
+        # complicated way to get to a list of values in the info column
+        infos = groups.apply(list).index.tolist()
+        if len(infos) == 1:
+            plot.set_title("{}: {}".format(info, infos[0]))
+
+
+def make_speedup_pointplot(data, columns, outdir,
+                           outputfile, info, isGrid=False):
+    speedup_data, legend_item = df_with_speedup(data, columns)
+    plot = sn.pointplot(x="scenario", y="S_mean", hue=legend_item,
+                        dodge=True, join=False, ci=None,
+                        data=speedup_data, pallet="Paired")
+    y_axis_min, y_axis_max = plot.get_ylim()
+    plot.set_ylim((0, y_axis_max))
+    set_plus_minus(data, y_max="S_max", y_mean="S_mean", y_min="S_min")
+    set_errorbars(plot, speedup_data, isGrid)
+    set_title(plot, info, speedup_data)
+    plot.set(xlabel="# independent functions")
+    figure = plot.get_figure()
+    figure.savefig(outdir + outputfile)
+
+
+def pointplot_with_errors(data: pd.DataFrame, x: str, y: str,
+                          hue: str, yerr_max=None, yerr_min=None, isGrid=False,
+                          **kwargs):
+    plot = sn.pointplot(x=x, y=y, hue=hue,
+                        dodge=True, join=False, ci=None,
+                        data=data, **kwargs)
+    set_errorbars(plot, data, isGrid)
+    return plot
+
+def scatterplot_with_errors(data: pd.DataFrame, x: str, y: str,
+                            hue: str, yerr_max=None, yerr_min=None,
+                            isGrid=False, **kwargs):
+
+    plot = sn.scatterplot(x=x, y=y, hue=hue, ci=None,
+                        data=data)
+    set_errorbars(plot, data, isGrid)
+    return plot
+
+def plot_with_errors(data: pd.DataFrame, x: str, y: str, plot_kind,
+                     hue: str, yerr_max=None, yerr_min=None,
+                     isGrid=False, **kwargs):
+
+    plot = plot_kind(x=x, y=y, hue=hue, data=data, **kwargs)
+    set_errorbars(plot, data, isGrid)
+    return plot
+
+
+def multi_plots(xdata: str, ydata: str, inputdata: pd.DataFrame,
+                hue_col: str, column_col: str,  plot_method=sn.scatterplot,
+                yplus=None, yminus=None,
+                outdir=None, **kwargs):
+    grid = sn.FacetGrid(inputdata, col=column_col)
+    """
+    grid.map_dataframe(scatterplot_with_errors, x=xdata, y=ydata, hue=hue_col,
+                      yerr_min=yminus, yerr_max=yplus, isGrid=True, jitter="0.2")
+    """
+    grid.map_dataframe(plot_with_errors, x=xdata, y=ydata, hue=hue_col,
+                       plot_kind=plot_method,
+                       yerr_min=yminus, yerr_max=yplus, isGrid=True, **kwargs)
+
+    #print("axes dict: ", grid.axes_dict)
+    #print("row_names: ", grid.row_names)
+    #print("col_names: ", grid.col_names)
+
+    #for ax in grid.axes_dict.values():
+     #   ax.set_xticks([3,7,15,31])
+      #  print(type(ax))
+
+    grid.add_legend(title=hue_col)
+
+    if outdir:
+        grid.figure.savefig(outdir)
+    else:
+        grid.figure.show()
 
 
 def main(args):
     inputfile = args.Input
     outdir = args.outputdir
     outputfile = args.filename
+    info = args.info
+    columns = args.indexcolumns
     if not os.path.isdir(outdir):
         os.makedirs(outdir)
     data = pd.read_csv(inputfile, index_col=0)
-    speedup_data = prepare_dataframe(data)
-    plot = sn.pointplot(x="scenario", y="S_mean", hue="version_lib",
-                        style="library",
-                        dodge=True, join=False, ci=None,
-                        data=speedup_data)
-    set_errorbars(plot, speedup_data)
-    figure = plot.get_figure()
-    figure.savefig(outdir + outputfile)
-
-
-
-
+    make_speedup_pointplot(data, columns, outdir, outputfile, info)
 
 def _get_argument_parser():
     parser = argparse.ArgumentParser()
@@ -90,8 +137,23 @@ def _get_argument_parser():
     parser.add_argument(
         "-b", "--base-case",
         type=str,
-        help="name of base case for speedup calculation, ",
+        help="name of base case for speedup calculation, e.g. 'sequential' ",
     )
+    parser.add_argument(
+        "-i", "--info",
+        type=str,
+        default="input",
+        help="column name to include as an info below the plot"
+    )
+    parser.add_argument(
+        "-c", "--indexcolumns",
+        nargs='+',
+        required=True,
+        default=["version", "library"],
+        help="column(s) to use a data rows. Multiple columns will be combined"
+             "as col1Value_col2Value"
+    )
+
     parser.add_argument(
         "-o", "--outputdir",
         type=str,
@@ -107,8 +169,6 @@ def _get_argument_parser():
     return parser
 
 
-
 if __name__ == '__main__':
     main(_get_argument_parser().parse_args())
-    
 
