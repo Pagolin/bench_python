@@ -6,7 +6,7 @@ from bs_main import calculate
 from bs_main_compiled import calulate as calculate_par
 
 # TODO: By default Timer uses time.perf_counter() which really counts the
-#  time between to points, time.process_time() measures the of the
+#  time between to points, time.process_time() measurements the of the
 #  sum of the system and user CPU time of the current process.
 #  It does not include time elapsed during sleep.
 #  It is process-wide by definition.  -> consider switching, what does
