@@ -15,7 +15,8 @@ def fun3(x):
     time.sleep(x / 20)
 
 fun_default = fun1
-
+fun4, fun5, fun6, fun7, fun8, fun9, fun10, fun11, \
+fun12, fun13, fun14, fun15 = [fun_default] * 12
 
 def combine(*args):
     x, *other = args

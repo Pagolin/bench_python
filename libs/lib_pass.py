@@ -1,4 +1,5 @@
-
+def prepare_input(x):
+    pass
 def fun1(x):
     pass
 

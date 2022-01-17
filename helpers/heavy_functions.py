@@ -1,5 +1,6 @@
 import math
 import random
+import tempfile
 
 def factorize_naive(n):
     """ A naive factorization method. Take integer 'n', return list of
@@ -179,4 +180,10 @@ def allocate_list(i):
 def allocate_and_sum_list(i):
     l = [random.randint(0, i) for _ in range(i)]
     l.sort()
+    return sum(l)
+
+def allocate_and_write_to_file(i):
+    l = [random.randint(0, i) for _ in range(i)]
+    temp = tempfile.TemporaryFile(mode='w')
+    temp.write(str(l))
     return sum(l)
