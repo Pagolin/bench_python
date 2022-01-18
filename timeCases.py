@@ -25,10 +25,10 @@ def main(args):
         all_measurements.extend(measurements)
     data = pd.DataFrame(
         columns=["scenario", "version", "library", "input",
-                 "reps", "min", "geo-mean", "max"],
+                 "reps", "time"],
         data=all_measurements)
     # Seconds to milliseconds
-    data[["min", "geo-mean", "max"]] *= 1000
+    data[["time"]] *= 1000
     data.to_csv(args.output)
 
 

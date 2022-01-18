@@ -43,8 +43,8 @@ def take_times(inputs, reps, lib_arg= None, pname=__name__):
                     .repeat(reps, number=1)
                 print("{} with {} done in {}".format(version.name, library,
                                                      median(times)))
-                measurements = [min(times), geometric_mean(times), max(times)]
-                all_measurements.append(test_params + measurements)
+                for time in times:
+                    all_measurements.append(test_params + [time])
     return all_measurements
 
 
@@ -56,10 +56,10 @@ def main(args):
     # prepare data collection
     data = pd.DataFrame(
         columns=["scenario", "version", "library", "input",
-                 "reps", "min", "geo-mean", "max"],
+                 "reps", "time"],
         data=measurements)
     # Seconds to milliseconds
-    data[["min", "geo-mean", "max"]] *= 1000
+    data[["time"]] *= 1000
     data.to_csv(args.output)
 
 def get_argument_parser():
