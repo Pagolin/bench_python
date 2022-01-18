@@ -1,61 +1,51 @@
 import multiprocessing as mp
 
-result_0_0_0_sender, result_0_0_0_receiver = mp.Pipe()
-z_0_0_0_sender, z_0_0_0_receiver = mp.Pipe()
-y_0_0_0_sender, y_0_0_0_receiver = mp.Pipe()
-x_0_0_0_sender, x_0_0_0_receiver = mp.Pipe()
 
-
-def task_1():
+def task_1(result_0_0_0_sender, a_0_0_0_receiver, b_0_0_0_receiver,
+           c_0_0_0_receiver):
     while True:
-        var_0 = x_0_0_0_receiver.recv()
-        var_1 = y_0_0_0_receiver.recv()
-        var_2 = z_0_0_0_receiver.recv()
-        result_0_0_0 = combine(i, var_0, var_1, var_2)
+        var_1 = a_0_0_0_receiver.recv()
+        var_2 = b_0_0_0_receiver.recv()
+        var_3 = c_0_0_0_receiver.recv()
+        result_0_0_0 = combine(i, var_1, var_2, var_3)
         result_0_0_0_sender.send(result_0_0_0)
 
 
-def task_2():
-    y_0_0_0 = fun2(i)
-    y_0_0_0_sender.send(y_0_0_0)
+def task_2(b_0_0_0_sender):
+    b_0_0_0 = fun2(i)
+    b_0_0_0_sender.send(b_0_0_0)
 
 
-def task_3():
-    z_0_0_0 = fun3(i)
-    z_0_0_0_sender.send(z_0_0_0)
+def task_3(c_0_0_0_sender):
+    c_0_0_0 = fun3(i)
+    c_0_0_0_sender.send(c_0_0_0)
 
 
-def task_4():
-    x_0_0_0 = fun1(i)
-    x_0_0_0_sender.send(x_0_0_0)
+def task_4(a_0_0_0_sender):
+    a_0_0_0 = fun1(i)
+    a_0_0_0_sender.send(a_0_0_0)
 
 
 from helpers.library_proxy import *
 
+
 def main(i_1):
     global i
     i, = i_1,
-    # global  fun1, fun2, fun3, combine
-    # fun1, fun2, fun3, combine, *other = library_proxy.get_funs()
+    result_0_0_0_sender, result_0_0_0_receiver = mp.Pipe()
+    c_0_0_0_sender, c_0_0_0_receiver = mp.Pipe()
+    b_0_0_0_sender, b_0_0_0_receiver = mp.Pipe()
+    a_0_0_0_sender, a_0_0_0_receiver = mp.Pipe()
     tasks = [task_1, task_2, task_3, task_4]
+    channels = [[result_0_0_0_sender, a_0_0_0_receiver, b_0_0_0_receiver,
+                 c_0_0_0_receiver], [b_0_0_0_sender], [c_0_0_0_sender],
+                [a_0_0_0_sender]]
     processes = []
-    for task in tasks:
-        process = mp.Process(target=task)
+    for task, channels in zip(tasks, channels):
+        process = mp.Process(target=task, args=channels)
         processes.append(process)
     list(map(mp.Process.start, processes))
     result = result_0_0_0_receiver.recv()
     list(map(mp.Process.terminate, processes))
     list(map(mp.Process.join, processes))
     return result
-
-
-"""
-if __name__ == '__main__':
-    args = get_argument_parser().parse_args()
-    input = args.Input
-    library_proxy.set_lib(lib_select[args.library])
-    global fun1, fun2, fun3, combine
-    fun1, fun2, fun3, combine, *other = library_proxy.get_funs()
-    result = main(input)
-    print(result)
-"""
