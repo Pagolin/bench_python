@@ -3,25 +3,28 @@ import time
 import importlib
 import argparse
 import pandas as pd
-from statistics import median, geometric_mean
+from statistics import median
 
+from helpers.timing_utils import Version
 from helpers import library_proxy
-from helpers.timing_utils import default_libraries, Version, lib_select
+import pipeline3.sequential as sequential
+import pipeline3.compiled as compiled
+import pipeline3.algo as algo
 
-import natPar3.sequential as sequential
-import natPar3.compiled as compiled
-import natPar3.algo as algo
-import natPar3.threaded as threaded
-import natPar3.as_pool as pooled
+from pipeline3 import lib_pipeline_lists as lib_lists
+from pipeline3 import lib_pipeline_list_sums as lib_list_sum
+from pipeline3 import lib_pipeline_lists_io as lib_list_IO
+from libs import lib_pass
 
-"""
+
 versions = [Version("sequential", sequential, []),
-            Version("compiled", compiled, [algo]),
-            Version("threaded", threaded, []),
-            Version("pooled", pooled, [])]"""
-versions = [Version("threaded", threaded, []),
-            Version("pooled", pooled, [])]
+            Version("compiled", compiled, [algo])]
 
+default_libraries = {"lists", "list_sum", "list_io", "pass"}
+
+lib_select = {"lists": lib_lists,
+              "list_sum": lib_list_sum, "list_io": lib_list_IO,
+              "pass": lib_pass}
 
 def take_times(inputs, reps, lib_arg= None, pname=__name__):
     global input
@@ -41,7 +44,7 @@ def take_times(inputs, reps, lib_arg= None, pname=__name__):
             for input in inputs:
                 test_params = [pname, version.name,
                                library, input, reps]
-                setup = "from {} import input, library_proxy, {};" \
+                setup = "from {} import input, {};" \
                     .format(__name__, version.name)
                 times = timeit.Timer(stmt="{}.algo(input)".format(version.name),
                                      setup=setup) \
@@ -56,8 +59,7 @@ def take_times(inputs, reps, lib_arg= None, pname=__name__):
 def main(args):
     inputs = args.inputs
     reps = args.repetitions
-    lib = args.library
-    measurements = take_times(inputs, reps, lib, "natPar3")
+    measurements = take_times(inputs, reps, None, "pipeline3")
     # prepare data collection
     data = pd.DataFrame(
         columns=["scenario", "version", "library", "input",
@@ -82,13 +84,6 @@ def get_argument_parser():
         type=int,
         default=10,
         help="how often to repeat the timing",
-    )
-    parser.add_argument(
-        "-l", "--library",
-        type=str,
-        default=None,
-        help="which library to take the functions from. Options: {}"
-            .format(default_libraries),
     )
     parser.add_argument(
         "-o", "--output",

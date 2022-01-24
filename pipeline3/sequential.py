@@ -1,5 +1,5 @@
-# from helpers.library_proxy import *
-from loop3.lib_pipeline import *
+from helpers.library_proxy import *
+
 
 def algo(i):
     result = []

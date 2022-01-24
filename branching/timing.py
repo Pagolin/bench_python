@@ -5,31 +5,44 @@ import argparse
 import pandas as pd
 from statistics import median
 
+from helpers import library_proxy
 from helpers.timing_utils import Version
-import loop3.lib_pipeline as lib_pipeline
-import loop3.sequential as sequential
-import loop3.compiled as compiled
-import loop3.algo as algo
+
+
+import branching.sequential as sequential
+import branching.compiled as compiled
+import branching.algo as algo
+
 
 versions = [Version("sequential", sequential, []),
             Version("compiled", compiled, [algo])]
+
+default_libraries = {"sleep", "fannkuch", "lists", "list_sum", "list_io"}
+
+lib_select = {"lists": lib_lists,
+              "list_sum": lib_list_sum, "list_io": lib_list_IO,
+              "pass": lib_pass}
 
 
 def take_times(inputs, reps, lib_arg= None, pname=__name__):
     global input
 
-    libraries = [lib_pipeline]
+    libraries = [lib_arg] if lib_arg \
+        else [name for name in lib_select.keys()]
     all_measurements = []
 
     for version in versions:
         for library in libraries:
+            # determine which library functions are exported by library_proxy,
+            # when the algorithms import library proxy
+            library_proxy.set_lib(lib_select[library])
             # reload the module to link the new library
             importlib.reload(version.module)
             [importlib.reload(mod) for mod in version.dependent_modules]
             for input in inputs:
                 test_params = [pname, version.name,
                                library, input, reps]
-                setup = "from {} import input, {};" \
+                setup = "from {} import input, library_proxy, {};" \
                     .format(__name__, version.name)
                 times = timeit.Timer(stmt="{}.algo(input)".format(version.name),
                                      setup=setup) \
@@ -44,7 +57,8 @@ def take_times(inputs, reps, lib_arg= None, pname=__name__):
 def main(args):
     inputs = args.inputs
     reps = args.repetitions
-    measurements = take_times(inputs, reps, None, "loop3")
+    lib = args.library
+    measurements = take_times(inputs, reps, lib, "branching")
     # prepare data collection
     data = pd.DataFrame(
         columns=["scenario", "version", "library", "input",
@@ -69,6 +83,13 @@ def get_argument_parser():
         type=int,
         default=10,
         help="how often to repeat the timing",
+    )
+    parser.add_argument(
+        "-l", "--library",
+        type=str,
+        default=None,
+        help="which library to take the functions from. Options: {}"
+            .format(default_libraries),
     )
     parser.add_argument(
         "-o", "--output",
