@@ -1,16 +1,15 @@
 import timeit, time
 import importlib
-import pandas as pd
 import argparse
+import pandas as pd
 from statistics import median, geometric_mean
-
 
 from helpers import library_proxy
 from helpers.timing_utils import default_libraries, Version, lib_select
 
-import natPar7.sequential as sequential
-import natPar7.compiled as compiled
-import natPar7.algo as algo
+import natPar16.sequential as sequential
+import natPar16.compiled as compiled
+import natPar16.algo as algo
 
 
 versions = [Version("sequential", sequential, []),
@@ -53,7 +52,7 @@ def main(args):
     inputs = args.inputs
     reps = args.repetitions
     lib = args.library
-    measurements = take_times(inputs, reps, lib, "natPar7")
+    measurements = take_times(inputs, reps, lib, "natPar16")
     # prepare data collection
     data = pd.DataFrame(
         columns=["scenario", "version", "library", "input",

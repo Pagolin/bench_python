@@ -23,8 +23,8 @@ def combine(*args):
     time.sleep(x / 20)
 
 
-def ifFun(x):
-    time.sleep(x / 20)
+def check(x):
+    return True
 
 
 def elseFun(x):

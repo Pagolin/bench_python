@@ -1,5 +1,4 @@
 from helpers.library_proxy import *
-# from lib_sleep import *
 
 def algo(i):
     a = fun1(i)
@@ -14,13 +13,5 @@ def algo(i):
     j = fun10(i)
     k = fun11(i)
     l = fun12(i)
-    m = fun13(i)
-    n = fun14(i)
-    o = fun15(i)
-    result = combine(i, a, b, c, d, e, f, g, h,
-                     other_i, j, k, l, m, n, o)
+    result = combine(i,a,b,c,d,e,f,g, h, other_i, j, k, l)
     return result
-
-
-
-

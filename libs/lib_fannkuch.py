@@ -22,8 +22,8 @@ def combine(*args):
     return a == b == c
 
 
-def ifFun(x):
-    return fannkuch(x)
+def check(x):
+    return True
 
 
 def elseFun(x):

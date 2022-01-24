@@ -13,10 +13,12 @@ def algo(i):
         fst = e.submit(fun1,i)
         scnd = e.submit(fun2,i)
         thrd = e.submit(fun3,i)
-    x = fst.result()
-    y = scnd.result()
-    z = thrd.result()
-    result = combine(i, x,y,z)
+        frth = e.submit(fun4, i)
+    a = fst.result()
+    b = scnd.result()
+    c = thrd.result()
+    d = frth.result()
+    result = combine(i, a, b, c, d)
     return result
 
 
@@ -24,8 +26,8 @@ if __name__ == '__main__':
     args = get_argument_parser().parse_args()
     input = args.Input
     library_proxy.set_lib(lib_select[args.library])
-    global fun1, fun2, fun3, combine
-    fun1, fun2, fun3, combine, *other = library_proxy.get_funs()
+    global fun1, fun2, fun3,fun4, combine
+    fun1, fun2, fun3,fun4, combine, *other = library_proxy.get_funs()
     result = algo(input)
     print(result)
 

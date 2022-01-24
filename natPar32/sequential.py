@@ -1,6 +1,5 @@
 from helpers.library_proxy import *
 
-
 def algo(i):
     a = fun1(i)
     b = fun2(i)
@@ -32,7 +31,7 @@ def algo(i):
     m1 = fun13(i)
     n1 = fun14(i)
     o1 = fun15(i)
-    result = combine(i, a, b, c, d, e, f, g, h, other_i, j, k, l, m, n,
-                     o, a1, b1, c1, d1, e1, f1, g1, h1, i1, j1, k1, l1, m1, n1,
-                     o1)
+    a2 = fun1(i)
+    b2 = fun2(i)
+    result = combine(i, a,b,c,d,e,f,g, h, other_i, j, k, l, m, n, o, a1,b1,c1,d1,e1,f1,g1, h1, i1, j1, k1, l1, m1, n1, o1, a2, b2)
     return result

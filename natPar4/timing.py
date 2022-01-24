@@ -1,27 +1,30 @@
-import timeit, time
+import timeit
+import time
 import importlib
 import argparse
 import pandas as pd
-from statistics import median, geometric_mean
+from statistics import median
 
 from helpers import library_proxy
 from helpers.timing_utils import default_libraries, Version, lib_select
 
-import natPar15.sequential as sequential
-import natPar15.compiled as compiled
-import natPar15.algo as algo
+import natPar4.sequential as sequential
+import natPar4.compiled as compiled
+import natPar4.algo as algo
+import natPar4.threaded as threaded
+import natPar4.as_pool as pooled
 
 
 versions = [Version("sequential", sequential, []),
-            Version("compiled", compiled, [algo])]
-
+            Version("compiled", compiled, [algo]),
+            Version("threaded", threaded, []),
+            Version("pooled", pooled, [])]
 
 def take_times(inputs, reps, lib_arg= None, pname=__name__):
     global input
 
     libraries = [lib_arg] if lib_arg \
         else [name for name in lib_select.keys()]
-
     all_measurements = []
 
     for version in versions:
@@ -37,9 +40,8 @@ def take_times(inputs, reps, lib_arg= None, pname=__name__):
                                library, input, reps]
                 setup = "from {} import input, library_proxy, {};" \
                     .format(__name__, version.name)
-                times = timeit.Timer(
-                    stmt="{}.algo(input)".format(version.name),
-                    setup=setup) \
+                times = timeit.Timer(stmt="{}.algo(input)".format(version.name),
+                                     setup=setup) \
                     .repeat(reps, number=1)
                 print("{} with {} done in {}".format(version.name, library,
                                                      median(times)))
@@ -52,7 +54,7 @@ def main(args):
     inputs = args.inputs
     reps = args.repetitions
     lib = args.library
-    measurements = take_times(inputs, reps, lib, "natPar15")
+    measurements = take_times(inputs, reps, lib, "natPar4")
     # prepare data collection
     data = pd.DataFrame(
         columns=["scenario", "version", "library", "input",
@@ -61,6 +63,7 @@ def main(args):
     # Seconds to milliseconds
     data[["time"]] *= 1000
     data.to_csv(args.output)
+
 
 def get_argument_parser():
     parser = argparse.ArgumentParser()
@@ -74,7 +77,7 @@ def get_argument_parser():
     parser.add_argument(
         "-r", "--repetitions",
         type=int,
-        default=20,
+        default=10,
         help="how often to repeat the timing",
     )
     parser.add_argument(
@@ -95,4 +98,3 @@ def get_argument_parser():
 
 if __name__ == '__main__':
     main(get_argument_parser().parse_args())
-

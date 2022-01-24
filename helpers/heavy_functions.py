@@ -175,7 +175,7 @@ def allocate_list(i):
     l = [random.randint(0, i) for _ in range(i)]
     l.sort()
     x = sum(l)
-    return l,x
+    return x,l
 
 def allocate_and_sum_list(i):
     l = [random.randint(0, i) for _ in range(i)]

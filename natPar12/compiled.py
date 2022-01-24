@@ -1,4 +1,4 @@
-import natPar7.algo as algo_parallel
+import natPar12.algo as algo_parallel
 
 def algo(i):
     return algo_parallel.main(i)

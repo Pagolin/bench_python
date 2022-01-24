@@ -20,10 +20,13 @@ def algo(i):
     scnd.start()
     thrd = th.Thread(target=wrapper, args=(fun3,i,"c"))
     thrd.start()
+    frth = th.Thread(target=wrapper, args=(fun4, i, "d"))
+    frth.start()
     result = combine(i, *results)
     fst.join()
     scnd.join()
     thrd.join()
+    frth.join()
     return result
 
 
@@ -65,8 +68,8 @@ if __name__ == '__main__':
     args = get_argument_parser().parse_args()
     inputs = args.inputs
     library_proxy.set_lib(lib_select[args.library])
-    global fun1, fun2, fun3, combine
-    fun1, fun2, fun3, combine, *other = library_proxy.get_funs()
+    global fun1, fun2, fun3,fun4, combine
+    fun1, fun2, fun3, fun4, combine, *other = library_proxy.get_funs()
     result = algo(inputs[0][0])
 
 

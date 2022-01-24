@@ -1,35 +1,46 @@
 import argparse
 import time
-import pandas as pd
-import helpers.timing_utils as timing_utils
-import natPar3.timing
-import natPar7.timing
-import natPar15.timing
-import natPar31.timing
-case_selector = {"natPar3": natPar3.timing,
-                "natPar7": natPar7.timing,
-                "natPar15": natPar15.timing,
-                "natPar31": natPar31.timing}
 
+import pandas as pd
+
+import helpers.timing_utils as timing_utils
+import natPar16.timing
+import natPar20.timing
+import natPar24.timing
+import natPar28.timing
+import natPar32.timing
+import natPar4.timing
+import natPar8.timing
+
+case_selector = {"natPar4": natPar4.timing,
+                 "natPar8": natPar8.timing,
+                 "natPar16": natPar16.timing,
+                 "natPar20": natPar20.timing,
+                 "natPar24": natPar24.timing,
+                 "natPar28": natPar28.timing,
+                 "natPar32": natPar32.timing}
 
 
 def main(args):
     inputs = args.inputs
     reps = args.repetitions
     lib = args.library
-    test_cases = [case_selector[args.Case]] if args.Case \
-        else list(case_selector.values())
+    test_cases = (args.Case, case_selector[args.Case]) if args.Case \
+        else case_selector.items()
+    print(test_cases)
     all_measurements = []
-    for case in test_cases:
+    for case_name, case in test_cases:
         measurements = case.take_times(inputs, reps, lib)
-        all_measurements.extend(measurements)
-    data = pd.DataFrame(
-        columns=["scenario", "version", "library", "input",
-                 "reps", "time"],
-        data=all_measurements)
-    # Seconds to milliseconds
-    data[["time"]] *= 1000
-    data.to_csv(args.output)
+        # all_measurements.extend(measurements)
+        data = pd.DataFrame(
+            columns=["scenario", "version", "library", "input",
+                     "reps", "time"],
+            data= measurements)
+        # Seconds to milliseconds
+        data[["time"]] *= 1000
+        file_name = args.output + "time_measures_{}_{}.csv".format(case_name,
+            time.strftime("%Y_%m_%d_%I_%M"))
+        data.to_csv(file_name)
 
 
 def _get_argument_parser():
@@ -57,9 +68,8 @@ def _get_argument_parser():
     parser.add_argument(
         "-o", "--output",
         type=str,
-        default="./time_measures_{}.csv".format(
-            time.strftime("%Y_%m_%d_%I_%M")),
-        help="file path to write the timing measurements to  ",
+        default="./",
+        help=" path to write the timing measurements to ",
     )
     parser.add_argument(
         "-c", "--Case",

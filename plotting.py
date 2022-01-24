@@ -17,7 +17,7 @@ def set_errorbars(plot, plot_data, is_grid=False):
     dot_colors = []
     # collections are based on hue i.e. 'lines of data with same color'
     for point_pair in plot.collections:
-        point_pair.set_sizes(point_pair.get_sizes() * 0.5)
+        # point_pair.set_sizes(point_pair.get_sizes() * 0.5)
         for x, y in point_pair.get_offsets():
             if type(x) != numpy.float64:
                 # it's a filling for a missing point
@@ -60,53 +60,31 @@ def make_speedup_pointplot(data, columns, outdir,
     figure.savefig(outdir + outputfile)
 
 
-def pointplot_with_errors(data: pd.DataFrame, x: str, y: str,
-                          hue: str, yerr_max=None, yerr_min=None, isGrid=False,
-                          **kwargs):
-    plot = sn.pointplot(x=x, y=y, hue=hue,
-                        dodge=True, join=False, ci=None,
-                        data=data, **kwargs)
-    set_errorbars(plot, data, isGrid)
-    return plot
-
-def scatterplot_with_errors(data: pd.DataFrame, x: str, y: str,
-                            hue: str, yerr_max=None, yerr_min=None,
-                            isGrid=False, **kwargs):
-
-    plot = sn.scatterplot(x=x, y=y, hue=hue, ci=None,
-                        data=data)
-    set_errorbars(plot, data, isGrid)
-    return plot
-
 def plot_with_errors(data: pd.DataFrame, x: str, y: str, plot_kind,
                      hue: str, yerr_max=None, yerr_min=None,
                      isGrid=False, **kwargs):
 
     plot = plot_kind(x=x, y=y, hue=hue, data=data, **kwargs)
-    set_errorbars(plot, data, isGrid)
+    # set_errorbars(plot, data, isGrid)
     return plot
 
 
 def multi_plots(xdata: str, ydata: str, inputdata: pd.DataFrame,
-                hue_col: str, column_col: str,  plot_method=sn.scatterplot,
-                yplus=None, yminus=None,
+                hue_col: str, column_col: str, plot_method=sn.scatterplot,
+                set_x_ticks=False,
+                col_order=None, yplus=None, yminus=None,
                 outdir=None, **kwargs):
-    grid = sn.FacetGrid(inputdata, col=column_col)
-    """
-    grid.map_dataframe(scatterplot_with_errors, x=xdata, y=ydata, hue=hue_col,
-                      yerr_min=yminus, yerr_max=yplus, isGrid=True, jitter="0.2")
-    """
+
+    grid = sn.FacetGrid(inputdata, col=column_col, col_order=col_order)
+
     grid.map_dataframe(plot_with_errors, x=xdata, y=ydata, hue=hue_col,
                        plot_kind=plot_method,
                        yerr_min=yminus, yerr_max=yplus, isGrid=True, **kwargs)
 
-    #print("axes dict: ", grid.axes_dict)
-    #print("row_names: ", grid.row_names)
-    #print("col_names: ", grid.col_names)
-
-    #for ax in grid.axes_dict.values():
-     #   ax.set_xticks([3,7,15,31])
-      #  print(type(ax))
+    if set_x_ticks:
+        ticks = list(set(inputdata[xdata].tolist()))
+        for ax in grid.axes_dict.values():
+            ax.set_xticks(ticks)
 
     grid.add_legend(title=hue_col)
 

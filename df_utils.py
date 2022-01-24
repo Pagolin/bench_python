@@ -49,6 +49,27 @@ def df_with_speedup(data, columns):
     compared_to_sequential.sort_values(by="scenario", axis=0, inplace=True)
     return compared_to_sequential, legen_item
 
+def add_speedup(data, columns):
+    basevalues = data[data.version == "sequential"]
+
+    # join dataframes such that every measurement
+    # has the according sequential measurement in the same row
+    same_data_row = columns
+
+    compared_to_sequential = data.merge(
+        basevalues,
+        on=same_data_row,
+        suffixes=('', '_seq'))
+
+    # speedup = parallel time /sequential time
+    compared_to_sequential["speedup"] = compared_to_sequential["time_seq"] \
+                                       / compared_to_sequential["time"]
+
+    # Remove sequential results from speedup plot
+    compared_to_sequential = compared_to_sequential[
+        compared_to_sequential["version"] != "sequential"]
+    return compared_to_sequential
+
 
 def substract_parallel_overhead(input: pd.DataFrame, eq_columns: List[str]):
     data = input.copy(deep=True)
@@ -65,6 +86,28 @@ def substract_parallel_overhead(input: pd.DataFrame, eq_columns: List[str]):
     result = compared_to_pass[compared_to_pass["library"] != "pass"]
     return result
 
+def substract_overhead(input: pd.DataFrame, eq_columns: List[str]):
+    data = input.copy(deep=True)
+    times_for_pass = data[data["library"] == "pass"]
+    compared_to_pass = data.merge(times_for_pass, on=eq_columns,
+                                  suffixes=('', '_pass'))
+    compared_to_pass["time"] = compared_to_pass["time"] \
+                                      - compared_to_pass["time_pass"]
+    # Remove the pass measures
+    result = compared_to_pass[compared_to_pass["library"] != "pass"]
+    return result
+
+def realtive_overhead(input: pd.DataFrame, eq_columns: List[str]):
+    data = input.copy(deep=True)
+    times_for_pass = data[data["library"] == "pass"]
+    overhead_column = "overhead in %"
+    compared_to_pass = data.merge(times_for_pass, on=eq_columns,
+                                  suffixes=('', '_pass'))
+    compared_to_pass[overhead_column] = compared_to_pass["time_pass"] \
+                                        / compared_to_pass["time"] * 100
+    # Remove the pass measures
+    result = compared_to_pass[compared_to_pass["library"] != "pass"]
+    return result, overhead_column
 
 def make_legend_column(df, columns):
     joined_name = "_".join(columns)
