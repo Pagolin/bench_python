@@ -67,7 +67,10 @@ def main(args):
         data=measurements)
     # Seconds to milliseconds
     data[["time"]] *= 1000
-    data.to_csv(args.output)
+    file_name = args.output + "time_measures_pipeline3_{}.csv".format(
+                                                               time.strftime(
+                                                                   "%Y_%m_%d_%I_%M"))
+    data.to_csv(file_name)
 
 
 def get_argument_parser():
@@ -88,9 +91,8 @@ def get_argument_parser():
     parser.add_argument(
         "-o", "--output",
         type=str,
-        default="./time_measures_{}.csv".format(
-            time.strftime("%Y_%m_%d_%I_%M")),
-        help="file path to write the timing measurements to  ",
+        default="./",
+        help="path to write the timing measurements to",
     )
     return parser
 

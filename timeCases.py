@@ -11,10 +11,12 @@ import natPar28.timing
 import natPar32.timing
 import natPar4.timing
 import natPar8.timing
+import natPar12.timing
 
 case_selector = {"natPar4": natPar4.timing,
                  "natPar8": natPar8.timing,
                  "natPar16": natPar16.timing,
+                 "natPar12": natPar12.timing,
                  "natPar20": natPar20.timing,
                  "natPar24": natPar24.timing,
                  "natPar28": natPar28.timing,
@@ -25,9 +27,8 @@ def main(args):
     inputs = args.inputs
     reps = args.repetitions
     lib = args.library
-    test_cases = (args.Case, case_selector[args.Case]) if args.Case \
+    test_cases = [(args.Case, case_selector[args.Case])] if args.Case \
         else case_selector.items()
-    print(test_cases)
     all_measurements = []
     for case_name, case in test_cases:
         measurements = case.take_times(inputs, reps, lib)

@@ -1,9 +1,5 @@
 import multiprocessing as mp
 
-def double(x):
-    return x, x
-
-
 
 def task_1(e_0_0_sender, current_0_0_0_2_receiver, ctrlTrue_0_receiver):
     while True:

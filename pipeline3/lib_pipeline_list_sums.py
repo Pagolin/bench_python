@@ -25,7 +25,7 @@ def combine(*args):
     pass
 
 
-def ifFun(x):
+def check(x):
     pass
 
 

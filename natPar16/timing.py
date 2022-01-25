@@ -2,7 +2,7 @@ import timeit, time
 import importlib
 import argparse
 import pandas as pd
-from statistics import median, geometric_mean
+from statistics import median
 
 from helpers import library_proxy
 from helpers.timing_utils import default_libraries, Version, lib_select
