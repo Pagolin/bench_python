@@ -10,6 +10,7 @@ import pandas as pd
 import branching.algo as algo
 import branching.branch_lib_proxy as lp
 import branching.compiled as compiled
+import branching.sequential as sequential
 import branching.lib_basecase as basecase
 from branching.tooling import make_even_blocks, distribute_even
 from helpers.heavy_functions import allocate_and_sum_list
@@ -17,12 +18,12 @@ from helpers.timing_utils import Version
 
 lp.set_lib(basecase)
 
-versions = [
-    Version("compiled", compiled, [algo])]
+versions = [Version("sequential", sequential, []),
+            Version("compiled", compiled, [algo])]
 
 # Relations should be  1:1, 1:2, 1:4, 1:8 and 1:0
 # We expect speedup to decrease as relations get more uneven
-relations = [5]  # , 3, 5, 9, 1]
+relations = [2, 3, 5, 9, 1]
 interesting_blocksizes = {2: 1, 3: 50, 5: 100, 9: 150, 1: 200}
 
 
@@ -50,21 +51,21 @@ def take_times(inputs, reps, lib_arg=None, pname=__name__):
 
             set_check(rel)
             measurements = measure_current_lib(
-                inputs, pname, "check", rel, reps, version)
+                inputs, pname, "check relation", rel, reps, version)
             all_measurements.extend(measurements)
             lp.set_lib(basecase)
             
            # Measure different relations of branch runtimes
             set_if_else(rel)
             measurements = measure_current_lib(
-                inputs, pname, "branch times", rel, reps, version)
+                inputs, pname, "branch time relation", rel, reps, version)
             all_measurements.extend(measurements)
             lp.set_lib(basecase)
 
             # Measure different distributions of if-else cases in the input
             set_prepare_input(rel, distribute_even)
             measurements = measure_current_lib(
-                inputs, pname, "input distribution", rel, reps, version)
+                inputs, pname, "case distribution", rel, reps, version)
             all_measurements.extend(measurements)
             lp.set_lib(basecase)
 
@@ -73,7 +74,7 @@ def take_times(inputs, reps, lib_arg=None, pname=__name__):
             block_size = interesting_blocksizes[rel]
             set_prepare_input(block_size, make_even_blocks)
             measurements = measure_current_lib(
-                inputs, pname, "input 'clustering'", block_size, reps, version)
+                inputs, pname, "case block size ", block_size, reps, version)
             all_measurements.extend(measurements)
             lp.set_lib(basecase)
 
@@ -90,15 +91,14 @@ def measure_current_lib(inputs, pname, altered, rel, reps, version):
         test_params = \
             [pname, version.name, altered, rel, command_input, reps]
         input = lp.prepare_input(command_input)
-        print(input)
         setup = "from {} import input, lp, {};" \
             .format(__name__, version.name)
         times = timeit.Timer(
             stmt="{}.algo(input)".format(version.name),
             setup=setup) \
             .repeat(reps, number=1)
-        print("{} with {} done in {}".format(version.name,
-                                             altered + str(rel),
+        print("{} with modified {} = {}: done in {}".format(version.name,
+                                             altered, str(rel),
                                              median(times)))
         for time in times:
             current_measurements.append(test_params + [time])
