@@ -1,15 +1,15 @@
-from helpers.library_proxy import *
-def double(x):
-    return x,x
+from branching.branch_lib_proxy import *
 
 def inner(i):
-    c = fun1(i)
-    flag, current  = double(c)
-    return fun2(current) if check(flag) else fun3(current)
+    c1, c2 = double(i)
+    flag = id_fun(c1)
+    current = id_fun(c2)
+    return if_fun(current) if check(flag) else else_fun(current)
 
 def algo(i):
     result = []
-    for j in range(i):
+    # we actually input an iterable, but need to wrap it for Ohua
+    for j in list(i):
         d = inner(j)
         result.append(d)
     return result
