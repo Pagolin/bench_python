@@ -9,14 +9,23 @@ from helpers.heavy_functions import allocate_list
 def prepare_input(x):
     return x
 
-def fun1(i):
-    return allocate_list(1000)
+def fun1(x):
+    y = 100
+    if x == 100:
+        y = x
+    return allocate_list(y*1000)
 
 def fun2(x):
-    return allocate_list(1000)
+    y = 100
+    if x[0] == 100:
+        y = x[0]
+    return allocate_list(y * 1000)
 
 def fun3(x):
-    return allocate_list(1000)
+    y = 100
+    if x[0] == 100:
+        y = x[0]
+    return allocate_list(y * 1000)
 
 fun_default = fun1
 def combine(*args):
