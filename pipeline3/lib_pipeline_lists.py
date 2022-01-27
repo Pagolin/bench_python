@@ -10,20 +10,20 @@ def prepare_input(x):
     return x
 
 def fun1(x):
-    y = 100
-    if x == 100:
+    y = 1
+    if x == 1:
         y = x
     return allocate_list(y*1000)
 
 def fun2(x):
-    y = 100
-    if x[0] == 100:
+    y = 1
+    if x[0] == 1:
         y = x[0]
     return allocate_list(y * 1000)
 
 def fun3(x):
-    y = 100
-    if x[0] == 100:
+    y = 1
+    if x[0] == 1:
         y = x[0]
     return allocate_list(y * 1000)
 

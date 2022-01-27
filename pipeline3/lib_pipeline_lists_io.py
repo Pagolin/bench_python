@@ -12,20 +12,20 @@ def prepare_input(x):
 
 
 def fun1(x):
-    if x != 100:
-        x = 100
+    if x != 1:
+        x = 1
     return allocate_and_write_to_file(x*1000)
 
 
 def fun2(x):
-    if x != 100:
-        x = 100
+    if x != 1:
+        x = 1
     return allocate_and_write_to_file(x*1000)
 
 
 def fun3(x):
-    if x != 100:
-        x = 100
+    if x != 1:
+        x = 1
     return allocate_and_write_to_file(x*1000)
 
 
