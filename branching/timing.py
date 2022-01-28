@@ -32,10 +32,11 @@ def set_check(rel):
 
 
 def set_if_else(rel):
+    complexity_for_both = 2*basecase.ORIGINAL_INPUT
     lp.if_fun = lambda x: allocate_and_sum_list(
-        ceil(1 / rel * basecase.ORIGINAL_INPUT))
+        ceil(1 / rel * complexity_for_both))
     lp.else_fun = lambda x: allocate_and_sum_list(
-        floor((rel - 1) / rel * basecase.ORIGINAL_INPUT))
+        floor((rel - 1) / rel * complexity_for_both))
 
 
 def set_prepare_input(rel, function):
@@ -112,7 +113,7 @@ def main(args):
     # prepare data collection
     data = pd.DataFrame(
         columns=["scenario", "version", "modified function", "value", "input",
-                 "reps", "time", ],
+                 "reps", "time"],
         data=measurements)
     data["list function input"] = basecase.ORIGINAL_INPUT
     # Seconds to milliseconds
