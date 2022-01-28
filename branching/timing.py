@@ -112,8 +112,9 @@ def main(args):
     # prepare data collection
     data = pd.DataFrame(
         columns=["scenario", "version", "modified function", "value", "input",
-                 "reps", "time"],
+                 "reps", "time", ],
         data=measurements)
+    data["list function input"] = basecase.ORIGINAL_INPUT
     # Seconds to milliseconds
     data[["time"]] *= 1000
     data.to_csv(args.output)
