@@ -1,15 +1,10 @@
 import argparse
-import os
 import time
 
-import matplotlib.axes._subplots
 import numpy
-import pandas as pd
-import seaborn as sn
-from matplotlib.axes._subplots import *
-from df_utils import df_with_speedup
+from df_utils import *
+from plotting_defs import *
 
-l = matplotlib.axes._subplots.Subplot
 
 def set_errorbars(plot, plot_data, is_grid=False):
     x_coords = []
@@ -47,7 +42,7 @@ def set_title(plot, info, data):
 def make_speedup_pointplot(data, columns, outdir,
                            outputfile, info, isGrid=False):
     speedup_data, legend_item = df_with_speedup(data, columns)
-    plot = sn.pointplot(x="scenario", y="S_mean", hue=legend_item,
+    plot = sns.pointplot(x="scenario", y="S_mean", hue=legend_item,
                         dodge=True, join=False, ci=None,
                         data=speedup_data, pallet="Paired")
     y_axis_min, y_axis_max = plot.get_ylim()
@@ -63,19 +58,25 @@ def make_speedup_pointplot(data, columns, outdir,
 def plot_with_errors(data: pd.DataFrame, x: str, y: str, plot_kind,
                      hue: str, yerr_max=None, yerr_min=None,
                      isGrid=False, **kwargs):
-
     plot = plot_kind(x=x, y=y, hue=hue, data=data, **kwargs)
     # set_errorbars(plot, data, isGrid)
     return plot
 
 
 def multi_plots(xdata: str, ydata: str, inputdata: pd.DataFrame,
-                hue_col: str, column_col: str, plot_method=sn.scatterplot,
-                set_x_ticks=False,
-                col_order=None, yplus=None, yminus=None,
+                hue_col: str, column_col: str, plot_method=sns.scatterplot,
+                set_x_ticks=False, sharey=True, subTitle=None,
+                col_order=None, yplus=None, yminus=None, rotate_labels=False,
                 outdir=None, **kwargs):
+    grid = sns.FacetGrid(inputdata, col=column_col,
+                        col_order=col_order, sharey=sharey)
 
-    grid = sn.FacetGrid(inputdata, col=column_col, col_order=col_order)
+    if "palette" not in kwargs:
+        key = "relation" \
+            if ("relation" in hue_col or "distribution" in hue_col)\
+            else hue_col
+
+        kwargs["palette"] = pallet_selector.get(key,"Paired")
 
     grid.map_dataframe(plot_with_errors, x=xdata, y=ydata, hue=hue_col,
                        plot_kind=plot_method,
@@ -86,7 +87,14 @@ def multi_plots(xdata: str, ydata: str, inputdata: pd.DataFrame,
         for ax in grid.axes_dict.values():
             ax.set_xticks(ticks)
 
+    if rotate_labels:
+        for ax in grid.axes_dict.values():
+            ax.set_xticklabels(ax.get_xticklabels(), rotation=25)
+
     grid.add_legend(title=hue_col)
+    if subTitle:
+        grid.fig.subplots_adjust(bottom=0.28)
+        grid.fig.supxlabel(subTitle, fontsize=12)
 
     if outdir:
         grid.figure.savefig(outdir)
@@ -104,6 +112,7 @@ def main(args):
         os.makedirs(outdir)
     data = pd.read_csv(inputfile, index_col=0)
     make_speedup_pointplot(data, columns, outdir, outputfile, info)
+
 
 def _get_argument_parser():
     parser = argparse.ArgumentParser()
@@ -149,4 +158,3 @@ def _get_argument_parser():
 
 if __name__ == '__main__':
     main(_get_argument_parser().parse_args())
-

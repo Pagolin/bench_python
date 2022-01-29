@@ -1,6 +1,6 @@
 from helpers.heavy_functions import allocate_and_sum_list
 
-ORIGINAL_INPUT = 100000
+ORIGINAL_INPUT = 10000
 
 
 def check(x):

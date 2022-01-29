@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 import pandas as pd
@@ -49,9 +50,10 @@ def df_with_speedup(data, columns):
     compared_to_sequential.sort_values(by="scenario", axis=0, inplace=True)
     return compared_to_sequential, legen_item
 
-def add_speedup(data, columns):
+def add_speedup(data, columns, time_col=None):
     basevalues = data[data.version == "sequential"]
-
+    if not time_col:
+        time_col = "time"
     # join dataframes such that every measurement
     # has the according sequential measurement in the same row
     same_data_row = columns
@@ -62,29 +64,14 @@ def add_speedup(data, columns):
         suffixes=('', '_seq'))
 
     # speedup = parallel time /sequential time
-    compared_to_sequential["speedup"] = compared_to_sequential["time_seq"] \
-                                       / compared_to_sequential["time"]
+    compared_to_sequential["speedup"] = compared_to_sequential[time_col+"_seq"] \
+                                       / compared_to_sequential[time_col]
 
     # Remove sequential results from speedup plot
     compared_to_sequential = compared_to_sequential[
         compared_to_sequential["version"] != "sequential"]
     return compared_to_sequential
 
-
-def substract_parallel_overhead(input: pd.DataFrame, eq_columns: List[str]):
-    data = input.copy(deep=True)
-    times_for_pass = data[data["library"] == "pass"]
-    compared_to_pass = data.merge(times_for_pass, on=eq_columns,
-                                  suffixes=('', '_pass'))
-    compared_to_pass["min"] = compared_to_pass["min"] \
-                                      - compared_to_pass["min_pass"]
-    compared_to_pass["geo-mean"] = compared_to_pass["geo-mean"] \
-                                      - compared_to_pass["geo-mean_pass"]
-    compared_to_pass["max"] = compared_to_pass["max"] \
-                                       - compared_to_pass["max_pass"]
-    # Remove the pass measures
-    result = compared_to_pass[compared_to_pass["library"] != "pass"]
-    return result
 
 def substract_overhead(input: pd.DataFrame, eq_columns: List[str]):
     data = input.copy(deep=True)
@@ -97,7 +84,7 @@ def substract_overhead(input: pd.DataFrame, eq_columns: List[str]):
     result = compared_to_pass[compared_to_pass["library"] != "pass"]
     return result
 
-def realtive_overhead(input: pd.DataFrame, eq_columns: List[str]):
+def relative_overhead(input: pd.DataFrame, eq_columns: List[str]):
     data = input.copy(deep=True)
     times_for_pass = data[data["library"] == "pass"]
     overhead_column = "overhead in %"
@@ -115,3 +102,17 @@ def make_legend_column(df, columns):
     df[joined_name] = df[
         columns].aggregate(join_func, axis="columns")
     return df, joined_name
+
+
+def accumulate_files(data_dir, base_file, pattern):
+    accumulate_df = pd.read_csv(data_dir + base_file, index_col=0)
+
+    for file in os.listdir(data_dir):
+        filename = os.fsdecode(file)
+        if pattern in filename and filename != base_file:
+            current_df = pd.read_csv(data_dir + filename, index_col=0)
+            accumulate_df = accumulate_df.append(current_df, ignore_index=True)
+
+    accumulate_df["time in ms"] = accumulate_df["time"]
+    accumulate_df = accumulate_df.drop("reps", axis=1)
+    return accumulate_df
