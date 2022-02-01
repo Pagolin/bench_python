@@ -1,4 +1,6 @@
-from scripting import *
+from math import ceil
+
+from plotting import *
 
 natPar_df = pd.read_csv(data_dir + natPars, index_col=0)
 no_pass = natPar_df[natPar_df["library"] != "pass"]
@@ -16,13 +18,11 @@ multi_plots(xdata="# independent functions", ydata='speedup',
             )
 
 
-# Assume  combine function took as long as the others
-# (this underestimates perfect speedup)
-# -> perfect speedup = all functions sequential/ tasks parallel + combine
-# -> perfect speedup = #independent functions + 1 / 2
+# Assume the combine function is basically negligible
+# -> perfect speedup = #parallel tasks / ceil(#paralell tasks/#cores) *
 
 def perfect_speedup(num_cores, num_funs):
-    return num_funs if num_funs <= num_cores else num_cores
+    return num_funs / (ceil(num_funs/num_cores))
 
 
 with_speedup["perfect speedup"] = with_speedup[

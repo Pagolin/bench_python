@@ -26,7 +26,7 @@ lib_select = {"lists": lib_lists,
               "list_sum": lib_list_sum, "list_io": lib_list_IO,
               "pass": lib_pass}
 
-def take_times(inputs, reps, lib_arg= None, pname=__name__):
+def take_times(inputs, reps, lib_arg= None, pname=__name__, gc=False):
     global input
 
     libraries = [lib_arg] if lib_arg \
@@ -46,6 +46,8 @@ def take_times(inputs, reps, lib_arg= None, pname=__name__):
                                library, input, reps]
                 setup = "from {} import input, {};" \
                     .format(__name__, version.name)
+                if gc:
+                    setup = setup + "gc.enable()"
                 times = timeit.Timer(stmt="{}.algo(input)".format(version.name),
                                      setup=setup) \
                     .repeat(reps, number=1)
@@ -59,7 +61,8 @@ def take_times(inputs, reps, lib_arg= None, pname=__name__):
 def main(args):
     inputs = args.inputs
     reps = args.repetitions
-    measurements = take_times(inputs, reps, None, "pipeline3")
+    gc = True if args.gc else False
+    measurements = take_times(inputs, reps, None, "pipeline3", gc)
     # prepare data collection
     data = pd.DataFrame(
         columns=["scenario", "version", "library", "input",
@@ -87,6 +90,12 @@ def get_argument_parser():
         type=int,
         default=10,
         help="how often to repeat the timing",
+    )
+    parser.add_argument(
+        "--gc",
+        default=None,
+        help="enable garbage collection during measurement",
+        action='store_true',
     )
     parser.add_argument(
         "-o", "--output",

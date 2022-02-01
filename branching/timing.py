@@ -43,7 +43,7 @@ def set_prepare_input(rel, function):
     lp.prepare_input = lambda input: function(input, rel)
 
 
-def take_times(inputs, reps, lib_arg=None, pname=__name__):
+def take_times(inputs, reps, lib_arg=None, pname=__name__, gc=False):
     global command_input, input
     all_measurements = []
     for version in versions:
@@ -52,21 +52,21 @@ def take_times(inputs, reps, lib_arg=None, pname=__name__):
 
             set_check(rel)
             measurements = measure_current_lib(
-                inputs, pname, "check relation", rel, reps, version)
+                inputs, pname, "check relation", rel, reps, version, gc)
             all_measurements.extend(measurements)
             lp.set_lib(basecase)
             
            # Measure different relations of branch runtimes
             set_if_else(rel)
             measurements = measure_current_lib(
-                inputs, pname, "branch time relation", rel, reps, version)
+                inputs, pname, "branch time relation", rel, reps, version, gc)
             all_measurements.extend(measurements)
             lp.set_lib(basecase)
 
             # Measure different distributions of if-else cases in the input
             set_prepare_input(rel, distribute_even)
             measurements = measure_current_lib(
-                inputs, pname, "case distribution", rel, reps, version)
+                inputs, pname, "case distribution", rel, reps, version, gc)
             all_measurements.extend(measurements)
             lp.set_lib(basecase)
 
@@ -75,14 +75,14 @@ def take_times(inputs, reps, lib_arg=None, pname=__name__):
             block_size = interesting_blocksizes[rel]
             set_prepare_input(block_size, make_even_blocks)
             measurements = measure_current_lib(
-                inputs, pname, "case block size ", block_size, reps, version)
+                inputs, pname, "case block size ", block_size, reps, version, gc)
             all_measurements.extend(measurements)
             lp.set_lib(basecase)
 
     return all_measurements
 
 
-def measure_current_lib(inputs, pname, altered, rel, reps, version):
+def measure_current_lib(inputs, pname, altered, rel, reps, version, gc=False):
     global command_input, input
     current_measurements = []
     # reload the module to link the new library
@@ -94,6 +94,8 @@ def measure_current_lib(inputs, pname, altered, rel, reps, version):
         input = lp.prepare_input(command_input)
         setup = "from {} import input, lp, {};" \
             .format(__name__, version.name)
+        if gc:
+            setup = setup + "gc.enable()"
         times = timeit.Timer(
             stmt="{}.algo(input)".format(version.name),
             setup=setup) \
@@ -109,7 +111,8 @@ def measure_current_lib(inputs, pname, altered, rel, reps, version):
 def main(args):
     inputs = args.inputs
     reps = args.repetitions
-    measurements = take_times(inputs, reps, pname="branching")
+    gc = True if args.gc else False
+    measurements = take_times(inputs, reps, pname="branching", gc=gc)
     # prepare data collection
     data = pd.DataFrame(
         columns=["scenario", "version", "modified function", "value", "input",
@@ -135,6 +138,12 @@ def get_argument_parser():
         type=int,
         default=10,
         help="how often to repeat the timing",
+    )
+    parser.add_argument(
+        "--gc",
+        default=None,
+        help="enable garbage collection during measurement",
+        action='store_true',
     )
     parser.add_argument(
         "-o", "--output",

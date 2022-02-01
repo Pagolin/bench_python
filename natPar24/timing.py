@@ -16,7 +16,7 @@ versions = [Version("sequential", sequential, []),
             Version("compiled", compiled, [algo])]
 
 
-def take_times(inputs, reps, lib_arg= None, pname=__name__):
+def take_times(inputs, reps, lib_arg= None, pname=__name__, gc=False):
     global input
 
     libraries = [lib_arg] if lib_arg \
@@ -37,6 +37,8 @@ def take_times(inputs, reps, lib_arg= None, pname=__name__):
                                library, input, reps]
                 setup = "from {} import input, library_proxy, {};" \
                     .format(__name__, version.name)
+                if gc:
+                    setup = setup + "gc.enable()"
                 times = timeit.Timer(
                     stmt="{}.algo(input)".format(version.name),
                     setup=setup) \
@@ -52,7 +54,8 @@ def main(args):
     inputs = args.inputs
     reps = args.repetitions
     lib = args.library
-    measurements = take_times(inputs, reps, lib, "natPar24")
+    gc = True if args.gc else False
+    measurements = take_times(inputs, reps, lib, "natPar24", gc)
     # prepare data collection
     data = pd.DataFrame(
         columns=["scenario", "version", "library", "input",
@@ -83,6 +86,12 @@ def get_argument_parser():
         default=None,
         help="which library to take the functions from. Options: {}"
             .format(default_libraries),
+    )
+    parser.add_argument(
+        "--gc",
+        default=None,
+        help="enable garbage collection during measurement",
+        action='store_true',
     )
     parser.add_argument(
         "-o", "--output",

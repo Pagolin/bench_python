@@ -27,11 +27,11 @@ def main(args):
     inputs = args.inputs
     reps = args.repetitions
     lib = args.library
+    gc = True if args.gc else False
     test_cases = [(args.Case, case_selector[args.Case])] if args.Case \
         else case_selector.items()
-    all_measurements = []
     for case_name, case in test_cases:
-        measurements = case.take_times(inputs, reps, lib)
+        measurements = case.take_times(inputs=inputs, reps=reps, lib_arg=lib, gc=gc)
         # all_measurements.extend(measurements)
         data = pd.DataFrame(
             columns=["scenario", "version", "library", "input",
@@ -39,6 +39,7 @@ def main(args):
             data= measurements)
         # Seconds to milliseconds
         data[["time"]] *= 1000
+        data["gc_enabled"] = gc
         file_name = args.output + "time_measures_{}_{}.csv".format(case_name,
             time.strftime("%Y_%m_%d_%I_%M"))
         data.to_csv(file_name)
@@ -65,6 +66,12 @@ def _get_argument_parser():
         default=None,
         help="which library to take the functions from. Options: {}"
             .format(timing_utils.default_libraries),
+    )
+    parser.add_argument(
+        "--gc",
+        default=None,
+        help="enable garbage collection during measurement",
+        action='store_true',
     )
     parser.add_argument(
         "-o", "--output",
