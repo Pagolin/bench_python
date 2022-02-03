@@ -9,8 +9,8 @@ from helpers.timing_utils import default_libraries, Version, lib_select
 
 import natPar32.sequential as sequential
 import natPar32.compiled as compiled
-# import natPar32.algo as algo
-import natPar32.algo_reodered as algo
+import natPar32.algo as algo
+# import natPar32.algo_reodered as algo
 
 versions = [Version("sequential", sequential, []),
             Version("compiled", compiled, [algo])]
