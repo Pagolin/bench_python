@@ -1,8 +1,9 @@
-from scripting import *
+from plotting import *
 
 pipeline_df = pd.read_csv(data_dir + pipelines, index_col=0)
 no_pass = pipeline_df[pipeline_df["library"] != "pass"]
 with_speedup = add_speedup(no_pass, ["scenario", "library", "input"])
+
 
 # Plot execution time
 multi_plots(xdata="# loops", ydata='time in ms',

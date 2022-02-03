@@ -1,4 +1,4 @@
-from scripting import *
+from plotting import *
 
 natPar_df = pd.read_csv(data_dir + natPars, index_col=0)
 only_scenario_4 = natPar_df[natPar_df["# independent functions"] == 4]
@@ -42,6 +42,6 @@ multi_plots(xdata="input", ydata=overhead_column,
             inputdata=with_relative_overhead, sharey=False,
             plot_method=sns.barplot, hue_col="library",
             column_col="version",
-            col_order=["sequential", "threaded", "compiled", "pooled"],
+            col_order=["threaded", "threaded_clean", "threaded_order", "threaded_no_glob"],
             **barplot_error_args
             )

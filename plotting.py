@@ -64,12 +64,12 @@ def plot_with_errors(data: pd.DataFrame, x: str, y: str, plot_kind,
 
 
 def multi_plots(xdata: str, ydata: str, inputdata: pd.DataFrame,
-                hue_col: str, column_col: str, plot_method=sns.scatterplot,
-                set_x_ticks=False, sharey=True, subTitle=None,
+                hue_col: str, column_col: str, row_col=None, plot_method=sns.scatterplot,
+                set_x_ticks=False, sharey=True, subTitle=None, margin_titles=False,
                 col_order=None, yplus=None, yminus=None, rotate_labels=False,
                 outdir=None, **kwargs):
-    grid = sns.FacetGrid(inputdata, col=column_col,
-                        col_order=col_order, sharey=sharey)
+    grid = sns.FacetGrid(inputdata, col=column_col,row=row_col,
+                        col_order=col_order, sharey=sharey, margin_titles=margin_titles)
 
     if "palette" not in kwargs:
         key = "relation" \
