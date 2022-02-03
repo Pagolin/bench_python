@@ -10,7 +10,10 @@ block_size_pallet = "YlGnBu"
 
 colors = sns.color_palette("Set2")
 versions_color_dict = {"sequential": colors[1], "compiled": colors[0],
-                       "pooled": colors[2], "threaded": colors[3]}
+                       "pooled": colors[2], "threaded": colors[3],
+                       "threaded_clean":colors[4],
+                       "threaded_no_glob":colors[5],
+                       "threaded_order":colors[6]}
 
 lib_colors = sns.color_palette("tab10")
 lib_color_dict = {"lists": lib_colors[3], "list_sum": lib_colors[1],
@@ -19,20 +22,25 @@ lib_color_dict = {"lists": lib_colors[3], "list_sum": lib_colors[1],
 pallet_selector = {"input": inputs_pallet, "library": lib_color_dict,
                    "version": versions_color_dict,
                    "relation": relations_pallet,
-                   "case block size":block_size_pallet}
+                   "case block size": block_size_pallet}
 
 
 # Some default args for my plots
 barplot_error_args = {"estimator": gmean, "ci": "sd",
                       "errwidth": 1.0, "errcolor": "slategray", "capsize": 0.1}
+
 pointplot_error_args = {"estimator": gmean, "ci": "sd", "dodge": 0.4,
                         "join": False,
                         "scale": 0.6, "errwidth": 1.3, "capsize": 0.08, }
 
 
 data_dir = "../remoteMeasures/"
-natPars = "natParMeasures_Shakespeare.csv"
+natPars_old = "natParMeasures_Shakespeare.csv"
 pipelines_old = "pipelineMeasures_Shakespeare.csv"
 branching_old = "branchingMeasures_Shakespeare.csv"
+# After really making use of the arguments
 pipelines = "pipelineMeasures_Shakespeare_NEW.csv"
+# After correcting the distribution of input sizes for if vs else
 branching = "branchingMeasures_Shakespeare_NEW.csv"
+# After adding GC info and missing reps of natPar32
+natPars = "natParMeasures_Shakespeare_NoGC.csv"
