@@ -116,3 +116,16 @@ def accumulate_files(data_dir, base_file, pattern):
     accumulate_df["time in ms"] = accumulate_df["time"]
     accumulate_df = accumulate_df.drop("reps", axis=1)
     return accumulate_df
+
+
+def relative_to_list(input: pd.DataFrame, column, eq_columns: List[str]):
+    data = input.copy(deep=True)
+    scale_to_avoid_undeflow = 100
+    list_values = data[data["library"] == "lists"]
+    difference_column = "{} difference in %".format(column)
+    compared_to_list = data.merge(list_values, on=eq_columns,
+                                  suffixes=('', '_list'))
+    compared_to_list[difference_column] = compared_to_list[column] \
+                                        / compared_to_list[column+"_list"] * 100
+
+    return compared_to_list, difference_column
