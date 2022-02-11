@@ -8,13 +8,14 @@ def check(x):
 
 
 def if_fun(x):
-    # print("called if with ", x)
     return allocate_and_sum_list(ORIGINAL_INPUT)
 
 
 def else_fun(x):
-    # print("called else with ", x)
     return allocate_and_sum_list(ORIGINAL_INPUT)
 
-# It has to be x+1, because 0's mess up my modulo induced relations
-prepare_input = lambda x: range(1, x+1)
+
+def prepare_input(x):
+    # It has to be x+1,
+    # because 0's mess up modulo induced relations
+    return range(1, x + 1)

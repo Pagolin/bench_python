@@ -12,6 +12,9 @@ import natPar4.sequential as sequential
 import natPar4.compiled as compiled
 import natPar4.algo as algo
 import natPar4.threaded as threaded
+import natPar4.threaded_clean as threaded_clean
+import natPar4.threaded_no_glob as threaded_no_glob
+import natPar4.threaded_order as threaded_order
 import natPar4.as_pool as pooled
 
 
@@ -19,6 +22,13 @@ versions = [Version("sequential", sequential, []),
             Version("compiled", compiled, [algo]),
             Version("threaded", threaded, []),
             Version("pooled", pooled, [])]
+"""
+versions = [Version("sequential", sequential, []),
+            Version("threaded", threaded, []),
+            Version("threaded_clean", threaded_clean, []),
+            Version("threaded_order", threaded_order, []),
+            Version("threaded_no_glob", threaded_no_glob, []),]
+"""
 
 def take_times(inputs, reps, lib_arg= None, pname=__name__, gc=False):
     global input
